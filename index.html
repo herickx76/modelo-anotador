@@ -1,169 +1,378 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cardápio Digital</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cardápio Digital Premium</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
-    <header>
-        <h1>🍔 Burger King do Dev</h1>
-        <p>Monte seu pedido abaixo!</p>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* Ocultar barra de rolagem no modal mas permitir scroll */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animação de Shimmer (Carregamento) */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, #f3f4f6 4%, #e5e7eb 25%, #f3f4f6 36%);
+            background-size: 1000px 100%;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            500: '#f43f5e', // Rosa/Vermelho Moderno
+                            600: '#e11d48',
+                            900: '#881337',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased"
+      x-data="app()"
+      x-init="initApp()">
+
+    <header class="relative h-64 bg-gray-900 overflow-hidden">
+        <div class="absolute inset-0">
+            <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover opacity-60">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+        </div>
+        
+        <div class="relative z-10 container mx-auto px-4 h-full flex flex-col justify-end pb-8">
+            <div x-show="loading" class="animate-pulse space-y-2">
+                <div class="h-8 bg-gray-600 rounded w-48"></div>
+                <div class="h-4 bg-gray-600 rounded w-32"></div>
+            </div>
+            
+            <div x-show="!loading" x-transition.opacity.duration.500ms>
+                <span class="inline-block px-3 py-1 bg-brand-500 text-white text-xs font-bold tracking-wider uppercase rounded-full mb-2">Aberto Agora</span>
+                <h1 class="text-3xl md:text-5xl font-bold text-white mb-1" x-text="empresa.nome_fantasia"></h1>
+                <div class="flex items-center text-gray-300 gap-2 text-sm">
+                    <i class="ph ph-whatsapp-logo text-lg text-green-400"></i>
+                    <span x-text="formatPhone(empresa.telefone)"></span>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <div class="container">
-        <h2 style="margin-bottom: 15px;">Destaques</h2>
-        <div class="menu-grid" id="menu-container">
-            </div>
+    <main class="container mx-auto px-4 py-8 pb-32 max-w-5xl">
+        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <i class="ph ph-fork-knife text-brand-600"></i> Cardápio
+        </h2>
+
+        <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="i in 4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex gap-4 h-32">
+                    <div class="w-24 h-24 bg-gray-200 rounded-lg animate-shimmer flex-shrink-0"></div>
+                    <div class="flex-1 space-y-3 py-1">
+                        <div class="h-4 bg-gray-200 rounded animate-shimmer w-3/4"></div>
+                        <div class="h-3 bg-gray-200 rounded animate-shimmer w-full"></div>
+                        <div class="h-3 bg-gray-200 rounded animate-shimmer w-1/2"></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 gap-4" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            <template x-for="(item, id) in cardapio" :key="id">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 flex justify-between gap-4 group">
+                    <div class="flex flex-col justify-between flex-1">
+                        <div>
+                            <h3 class="font-bold text-gray-900 leading-tight" x-text="item.nome"></h3>
+                            <p class="text-sm text-gray-500 mt-1 line-clamp-2" x-text="item.desc || 'Sem descrição.'"></p>
+                        </div>
+                        <div class="flex items-center justify-between mt-3">
+                            <span class="font-bold text-brand-600 text-lg" x-text="formatMoney(item.preco)"></span>
+                            
+                            <button @click="addToCart(id, item)" 
+                                    class="bg-gray-100 text-gray-800 w-8 h-8 rounded-full flex items-center justify-center hover:bg-brand-500 hover:text-white transition-colors active:scale-95">
+                                <i class="ph ph-plus font-bold"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-gray-300">
+                        <i class="ph ph-hamburger text-3xl"></i>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </main>
+
+    <div class="fixed bottom-0 left-0 w-full p-4 z-40 pointer-events-none" 
+         x-show="cart.length > 0"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-y-full opacity-0"
+         x-transition:enter-end="translate-y-0 opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-y-0 opacity-100"
+         x-transition:leave-end="translate-y-full opacity-0">
+        
+        <div class="container mx-auto max-w-2xl pointer-events-auto">
+            <button @click="modalOpen = true" class="w-full bg-brand-600 text-white shadow-lg shadow-brand-500/40 rounded-xl p-4 flex items-center justify-between hover:bg-brand-700 transition active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="bg-brand-800 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" x-text="cartCount"></div>
+                    <span class="text-sm font-medium opacity-90">Ver meu pedido</span>
+                </div>
+                <div class="font-bold text-lg" x-text="cartTotal"></div>
+            </button>
+        </div>
     </div>
 
-    <div class="fab-cart" onclick="toggleCart()">
-        <i class="fas fa-shopping-bag"></i>
-        <span class="badge" id="cart-count">0</span>
-    </div>
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center" 
+         x-show="modalOpen" 
+         style="display: none;">
+        
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+             x-show="modalOpen"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="modalOpen = false"></div>
 
-    <div class="modal-overlay" id="cart-modal">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2>Seu Pedido</h2>
-                <button onclick="toggleCart()" style="background:none; border:none; font-size:1.5rem;">&times;</button>
+        <div class="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden transform transition-all max-h-[90vh] flex flex-col relative z-10"
+             x-show="modalOpen"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="translate-y-full sm:translate-y-10 sm:scale-95"
+             x-transition:enter-end="translate-y-0 sm:scale-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="translate-y-0 sm:scale-100"
+             x-transition:leave-end="translate-y-full sm:translate-y-10 sm:scale-95">
+            
+            <div class="p-4 border-b flex items-center justify-between bg-gray-50">
+                <h3 class="font-bold text-lg text-gray-800">Seu Pedido</h3>
+                <button @click="modalOpen = false" class="text-gray-400 hover:text-gray-600 p-1 bg-gray-200 rounded-full">
+                    <i class="ph ph-x"></i>
+                </button>
             </div>
-            
-            <div id="cart-items"></div>
-            
-            <div style="margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 15px;">
-                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">
-                    <span>Total:</span>
-                    <span id="cart-total">R$ 0,00</span>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+                <template x-for="(item, index) in cart" :key="index">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-medium text-gray-900" x-text="item.nome"></p>
+                            <p class="text-xs text-gray-500" x-text="formatMoney(item.preco * item.qtd)"></p>
+                        </div>
+                        <div class="flex items-center border rounded-lg h-8">
+                            <button @click="removeFromCart(item.id)" class="px-3 h-full text-brand-600 hover:bg-brand-50 rounded-l-lg transition">-</button>
+                            <span class="px-2 text-sm font-semibold" x-text="item.qtd"></span>
+                            <button @click="addToCart(item.id, item)" class="px-3 h-full text-brand-600 hover:bg-brand-50 rounded-r-lg transition">+</button>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="cart.length === 0" class="text-center py-8 text-gray-400">
+                    <i class="ph ph-shopping-bag text-4xl mb-2"></i>
+                    <p>Sua sacola está vazia.</p>
                 </div>
             </div>
 
-            <form id="checkout-form" style="margin-top: 20px;">
-                <input type="text" id="cliente-nome" placeholder="Seu Nome" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                <input type="tel" id="cliente-phone" placeholder="WhatsApp (DDD+Num)" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                <input type="text" id="cliente-endereco" placeholder="Endereço de Entrega" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <div class="p-5 bg-gray-50 border-t space-y-4">
+                <div class="flex justify-between items-end">
+                    <span class="text-gray-500 text-sm">Total a pagar</span>
+                    <span class="text-2xl font-bold text-gray-900" x-text="cartTotal"></span>
+                </div>
                 
-                <button type="submit" class="btn-add" style="background: var(--dark); padding: 15px;">FINALIZAR PEDIDO 🚀</button>
-            </form>
+                <div class="space-y-3">
+                    <input x-model="customerName" type="text" placeholder="Seu nome completo" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition">
+                    <input x-model="customerAddress" type="text" placeholder="Endereço para entrega" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition">
+                </div>
+
+                <button @click="sendOrder()" 
+                        :disabled="cart.length === 0 || sending"
+                        class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-600/20 hover:bg-green-700 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    <span x-show="!sending">Confirmar Pedido</span>
+                    <i x-show="!sending" class="ph ph-arrow-right font-bold"></i>
+                    <i x-show="sending" class="ph ph-spinner animate-spin text-xl"></i>
+                </button>
+            </div>
         </div>
+    </div>
+
+    <div x-show="toast.show" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 translate-y-2"
+         class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-xl z-50 flex items-center gap-3">
+        <i class="ph ph-check-circle text-green-400 text-xl"></i>
+        <span x-text="toast.message"></span>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, get, child, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // ⚠️ USE SUA CONFIGURAÇÃO DO FIREBASE AQUI
-        const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "clinicahcc-9b1c8.firebaseapp.com",
-            databaseURL: "https://clinicahcc-9b1c8-default-rtdb.firebaseio.com",
-            projectId: "clinicahcc-9b1c8",
-            storageBucket: "clinicahcc-9b1c8.firebasestorage.app",
-            messagingSenderId: "238456120590",
-            appId: "1:238456120590:web:2c070d10f7e83597d5e35f"
-        };
+        // ========================================================
+        // ⚠️ ATENÇÃO: SUBSTITUA COM SEUS DADOS DO FIREBASE AQUI
+        // ========================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCikTxSJLoSBJeGrNRugs1MvWxCohakwnI",
+  authDomain: "database-anotador.firebaseapp.com",
+  databaseURL: "https://database-anotador-default-rtdb.firebaseio.com",
+  projectId: "database-anotador",
+  storageBucket: "database-anotador.firebasestorage.app",
+  messagingSenderId: "1026172295848",
+  appId: "1:1026172295848:web:b5193909feee24ac8d409d",
+  measurementId: "G-L1Z0YKXT9N"
+};
 
+        // ========================================================
+
+        // Inicializa Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- DADOS DO CARDÁPIO (Pode vir do banco, mas aqui está fixo pra ser rápido) ---
-        const menu = [
-            { id: 1, nome: "X-Bacon Supremo", preco: 25.00, img: "https://cdn-icons-png.flaticon.com/512/3075/3075977.png" },
-            { id: 2, nome: "Smash Duplo", preco: 20.00, img: "https://cdn-icons-png.flaticon.com/512/3075/3075977.png" },
-            { id: 3, nome: "Coca-Cola Lata", preco: 6.00, img: "https://cdn-icons-png.flaticon.com/512/2405/2405479.png" },
-            { id: 4, nome: "Batata Frita", preco: 12.00, img: "https://cdn-icons-png.flaticon.com/512/305/305385.png" }
-        ];
+        // ID da Empresa (conforme seu JSON)
+        const COMPANY_ID = "joao_burguer"; 
 
-        let cart = [];
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({
+                loading: true,
+                sending: false,
+                modalOpen: false,
+                empresa: { nome_fantasia: '...', telefone: '' },
+                cardapio: {},
+                cart: [],
+                customerName: '',
+                customerAddress: '',
+                toast: { show: false, message: '' },
 
-        // Renderizar Menu
-        const container = document.getElementById('menu-container');
-        menu.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'card-produto';
-            div.innerHTML = `
-                <img src="${item.img}" alt="${item.nome}">
-                <h3>${item.nome}</h3>
-                <div class="price">R$ ${item.preco.toFixed(2)}</div>
-                <button class="btn-add" onclick="window.addToCart(${item.id})">Adicionar</button>
-            `;
-            container.appendChild(div);
-        });
+                async initApp() {
+                    try {
+                        // Busca dados do Firebase
+                        const dbRef = ref(db);
+                        const snapshot = await get(child(dbRef, `empresas/${COMPANY_ID}`));
+                        
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            this.empresa = data;
+                            this.cardapio = data.cardapio || {};
+                        } else {
+                            console.error("Empresa não encontrada");
+                        }
+                    } catch (error) {
+                        console.error("Erro ao carregar:", error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
 
-        // Funções Globais
-        window.addToCart = (id) => {
-            const item = menu.find(p => p.id === id);
-            cart.push(item);
-            updateCartUI();
-        };
+                addToCart(id, item) {
+                    const existing = this.cart.find(c => c.id === id);
+                    if (existing) {
+                        existing.qtd++;
+                    } else {
+                        // Cria uma cópia limpa do objeto para o carrinho
+                        this.cart.push({
+                            id: id,
+                            nome: item.nome,
+                            preco: item.preco,
+                            qtd: 1
+                        });
+                    }
+                    // Feedback tátil (vibrar no celular)
+                    if (navigator.vibrate) navigator.vibrate(50);
+                },
 
-        window.toggleCart = () => {
-            const modal = document.getElementById('cart-modal');
-            modal.classList.toggle('active');
-        };
+                removeFromCart(id) {
+                    const index = this.cart.findIndex(c => c.id === id);
+                    if (index === -1) return;
+                    
+                    if (this.cart[index].qtd > 1) {
+                        this.cart[index].qtd--;
+                    } else {
+                        this.cart.splice(index, 1);
+                    }
+                },
 
-        window.removeItem = (index) => {
-            cart.splice(index, 1);
-            updateCartUI();
-        };
+                get cartTotal() {
+                    const total = this.cart.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+                    return this.formatMoney(total);
+                },
 
-        function updateCartUI() {
-            document.getElementById('cart-count').innerText = cart.length;
-            const itemsDiv = document.getElementById('cart-items');
-            itemsDiv.innerHTML = '';
-            let total = 0;
+                get cartCount() {
+                    return this.cart.reduce((acc, item) => acc + item.qtd, 0);
+                },
 
-            cart.forEach((item, index) => {
-                total += item.preco;
-                itemsDiv.innerHTML += `
-                    <div class="cart-item">
-                        <span>${item.nome}</span>
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <strong>R$ ${item.preco.toFixed(2)}</strong>
-                            <i class="fas fa-trash" style="color:red; cursor:pointer;" onclick="removeItem(${index})"></i>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('cart-total').innerText = `R$ ${total.toFixed(2)}`;
-        }
+                formatMoney(value) {
+                    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+                },
 
-        // Enviar Pedido
-        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if(cart.length === 0) return alert("Carrinho vazio!");
+                formatPhone(phone) {
+                    if(!phone) return '';
+                    return phone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '+$1 ($2) $3-$4');
+                },
 
-            const nome = document.getElementById('cliente-nome').value;
-            const fone = document.getElementById('cliente-phone').value; // Importante pro BOT
-            const end = document.getElementById('cliente-endereco').value;
-            
-            // Formatando numero (removendo espaços e traços)
-            const foneClean = fone.replace(/\D/g, ''); 
-            const phoneFinal = foneClean.includes('@c.us') ? foneClean : `${foneClean}@c.us`;
+                showToast(msg) {
+                    this.toast.message = msg;
+                    this.toast.show = true;
+                    setTimeout(() => this.toast.show = false, 3000);
+                },
 
-            const total = cart.reduce((sum, i) => sum + i.preco, 0);
-            const desc = cart.map(i => i.nome).join(', ');
+                async sendOrder() {
+                    if (!this.customerName || !this.customerAddress) {
+                        alert("Por favor, preencha nome e endereço.");
+                        return;
+                    }
 
-            const pedido = {
-                cliente: nome,
-                telefone: phoneFinal,
-                endereco: end,
-                itens: desc,
-                total: total,
-                status: 'pendente', // Status Inicial
-                data: new Date().toISOString().split('T')[0],
-                timestamp: Date.now()
-            };
+                    this.sending = true;
 
-            await push(ref(db, 'pedidos'), pedido);
-            
-            alert("Pedido Enviado! Acompanhe pelo WhatsApp.");
-            cart = [];
-            updateCartUI();
-            toggleCart();
+                    const pedido = {
+                        cliente: this.customerName,
+                        endereco: this.customerAddress,
+                        itens: this.cart,
+                        total: this.cart.reduce((acc, item) => acc + (item.preco * item.qtd), 0),
+                        data: new Date().toISOString(),
+                        status: 'pendente' // novo, em preparo, etc.
+                    };
+
+                    try {
+                        // Salva no Firebase: empresas/joao_burguer/pedidos/[ID_AUTO_GERADO]
+                        const pedidosRef = ref(db, `empresas/${COMPANY_ID}/pedidos`);
+                        await push(pedidosRef, pedido);
+                        
+                        // Sucesso
+                        this.showToast('Pedido enviado com sucesso!');
+                        this.modalOpen = false;
+                        this.cart = [];
+                        this.customerName = '';
+                        this.customerAddress = '';
+                    } catch (error) {
+                        console.error("Erro ao enviar:", error);
+                        alert("Erro ao enviar pedido. Tente novamente.");
+                    } finally {
+                        this.sending = false;
+                    }
+                }
+            }));
         });
     </script>
 </body>
