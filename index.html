@@ -15,11 +15,18 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        [x-cloak] { display: none !important; } /* Esconde coisas antes de carregar */
+        [x-cloak] { display: none !important; }
         
-        /* Animações */
-        .fade-enter { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Shimmer Effect (Carregando) */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, #f3f4f6 4%, #e5e7eb 25%, #f3f4f6 36%);
+            background-size: 1000px 100%;
+        }
     </style>
 
     <script>
@@ -30,11 +37,10 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 text-gray-800" x-data="app()">
+<body class="bg-gray-50 text-gray-800" x-data="vendasApp">
 
-    <div x-show="errorMessage" x-cloak class="fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[60] text-center shadow-lg">
-        <p class="font-bold">⚠️ Ocorreu um erro:</p>
-        <p x-text="errorMessage" class="text-sm mt-1"></p>
+    <div x-show="errorMessage" x-cloak class="fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[100] text-center shadow-lg font-bold">
+        <p>⚠️ <span x-text="errorMessage"></span></p>
     </div>
 
     <header class="relative h-64 bg-gray-900 overflow-hidden">
@@ -42,45 +48,56 @@
         <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000" class="absolute inset-0 w-full h-full object-cover">
         
         <div class="relative z-20 container mx-auto px-4 h-full flex flex-col justify-end pb-8 text-white">
-            <div x-show="loading" class="flex items-center gap-3 animate-pulse">
+            <div x-show="loading" class="flex items-center gap-2">
                 <i class="ph ph-spinner animate-spin text-2xl"></i>
-                <span class="text-lg">Carregando cardápio...</span>
+                <span>Carregando informações...</span>
             </div>
 
-            <div x-show="!loading" x-cloak class="fade-enter">
-                <span class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded uppercase mb-2 inline-block">Aberto</span>
-                <h1 class="text-4xl md:text-5xl font-bold mb-1" x-text="empresa.nome_fantasia || 'Cardápio'"></h1>
-                <div class="flex items-center gap-2 text-gray-200">
-                    <i class="ph ph-whatsapp-logo text-green-400 text-lg"></i>
-                    <span x-text="formatPhone(empresa.telefone)"></span>
+            <div x-show="!loading" x-cloak>
+                <div class="inline-flex items-center gap-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mb-2">
+                    <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> ABERTO
                 </div>
+                <h1 class="text-4xl md:text-5xl font-bold mb-1 shadow-sm" x-text="empresa.nome_fantasia || 'Bem-vindo'"></h1>
+                <p class="text-gray-200 text-sm flex items-center gap-2">
+                    <i class="ph ph-whatsapp-logo text-lg text-green-400"></i>
+                    <span x-text="formatPhone(empresa.telefone)"></span>
+                </p>
             </div>
         </div>
     </header>
 
     <main class="container mx-auto px-4 py-8 pb-32 max-w-4xl">
-        <div x-show="!loading && (!cardapio || Object.keys(cardapio).length === 0)" x-cloak class="text-center py-12 text-gray-500 bg-white rounded-xl shadow-sm">
-            <i class="ph ph-warning-circle text-4xl mb-2 text-gray-300"></i>
-            <p>Nenhum item disponível no momento.</p>
+        
+        <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="i in 4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border h-32 animate-shimmer"></div>
+            </template>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <template x-for="(item, id) in cardapio" :key="id">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between gap-4 hover:shadow-md transition">
-                    <div class="flex flex-col justify-between flex-1">
-                        <div>
-                            <h3 class="font-bold text-gray-900 text-lg leading-tight" x-text="item.nome"></h3>
-                            <p class="text-sm text-gray-500 mt-1 line-clamp-2" x-text="item.desc || 'Sem descrição'"></p>
-                        </div>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="font-bold text-brand-600 text-lg" x-text="formatMoney(item.preco)"></span>
-                            <button @click="addToCart(id, item)" class="bg-gray-100 text-brand-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-brand-600 hover:text-white transition shadow-sm active:scale-90">
-                                <i class="ph ph-plus font-bold"></i>
-                            </button>
+        <div x-show="!loading" x-cloak>
+            <div x-show="cardapioLista.length === 0" class="text-center py-10 bg-white rounded-xl shadow-sm">
+                <i class="ph ph-hamburger text-4xl text-gray-300 mb-2"></i>
+                <p class="text-gray-500">Nenhum item disponível no cardápio.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <template x-for="item in cardapioLista" :key="item.id">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between gap-4 hover:shadow-md transition duration-200">
+                        <div class="flex flex-col justify-between flex-1">
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-lg leading-tight" x-text="item.nome"></h3>
+                                <p class="text-sm text-gray-500 mt-1 line-clamp-2" x-text="item.desc || 'Sem descrição'"></p>
+                            </div>
+                            <div class="flex justify-between items-center mt-4">
+                                <span class="font-bold text-brand-600 text-lg" x-text="formatMoney(item.preco)"></span>
+                                <button @click="addToCart(item)" class="bg-gray-100 w-10 h-10 rounded-full flex items-center justify-center text-brand-600 hover:bg-brand-600 hover:text-white transition active:scale-95 shadow-sm">
+                                    <i class="ph ph-plus font-bold"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </template>
+                </template>
+            </div>
         </div>
     </main>
 
@@ -93,15 +110,15 @@
         
         <button @click="modalOpen = true" class="w-full max-w-2xl mx-auto bg-brand-600 text-white shadow-2xl rounded-2xl p-4 flex items-center justify-between hover:bg-brand-700 transition active:scale-[0.99]">
             <div class="flex items-center gap-3">
-                <span class="bg-white text-brand-600 w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm" x-text="cartCount"></span>
-                <div class="flex flex-col items-start leading-none gap-1">
-                    <span class="text-xs opacity-80">Total</span>
+                <div class="bg-white text-brand-600 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm" x-text="cartCount"></div>
+                <div class="flex flex-col items-start leading-none">
+                    <span class="text-xs opacity-90">Total</span>
                     <span class="font-bold text-lg" x-text="cartTotal"></span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span class="font-semibold text-sm">Ver Pedido</span>
-                <i class="ph ph-arrow-right"></i>
+                <span class="font-semibold text-sm">Ver Sacola</span>
+                <i class="ph ph-shopping-bag"></i>
             </div>
         </button>
     </div>
@@ -113,11 +130,14 @@
         
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" @click="modalOpen = false"></div>
 
-        <div class="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col relative z-10 animate-slide-up">
+        <div class="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col relative z-10 animate-slide-up"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="translate-y-full"
+             x-transition:enter-end="translate-y-0">
             
             <div class="p-4 border-b flex items-center justify-between bg-gray-50">
-                <h3 class="font-bold text-lg text-gray-800">Seu Carrinho</h3>
-                <button @click="modalOpen = false" class="text-gray-400 hover:text-red-500 p-2"><i class="ph ph-x text-xl"></i></button>
+                <h3 class="font-bold text-lg">Seu Pedido</h3>
+                <button @click="modalOpen = false" class="text-gray-400 p-2"><i class="ph ph-x text-xl"></i></button>
             </div>
 
             <div class="flex-1 overflow-y-auto p-4 space-y-3">
@@ -128,9 +148,9 @@
                             <p class="text-xs text-gray-500" x-text="formatMoney(item.preco * item.qtd)"></p>
                         </div>
                         <div class="flex items-center border rounded-lg h-8">
-                            <button @click="removeFromCart(item.id)" class="px-3 h-full text-brand-600 hover:bg-gray-100 rounded-l-lg font-bold">-</button>
+                            <button @click="removeFromCart(item.id)" class="px-3 h-full text-brand-600 hover:bg-gray-100 font-bold">-</button>
                             <span class="px-3 text-sm font-semibold" x-text="item.qtd"></span>
-                            <button @click="addToCart(item.id, item)" class="px-3 h-full text-brand-600 hover:bg-gray-100 rounded-r-lg font-bold">+</button>
+                            <button @click="addToCart(item)" class="px-3 h-full text-brand-600 hover:bg-gray-100 font-bold">+</button>
                         </div>
                     </div>
                 </template>
@@ -142,21 +162,23 @@
                     <span x-text="cartTotal"></span>
                 </div>
                 
-                <input x-model="customerName" type="text" placeholder="Seu Nome Completo" class="w-full p-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
-                <input x-model="customerAddress" type="text" placeholder="Endereço de Entrega" class="w-full p-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
+                <input x-model="customerName" type="text" placeholder="Seu Nome" class="w-full p-3 rounded-xl border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
+                <input x-model="customerAddress" type="text" placeholder="Endereço Completo" class="w-full p-3 rounded-xl border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
 
-                <button @click="sendOrder()" :disabled="sending" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2">
+                <button @click="sendOrder()" :disabled="sending" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow hover:bg-green-700 transition flex justify-center items-center gap-2 disabled:opacity-50">
                     <span x-show="!sending">Confirmar Pedido</span>
-                    <i x-show="!sending" class="ph ph-check-circle text-xl"></i>
                     <i x-show="sending" class="ph ph-spinner animate-spin text-xl"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, child, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         // ============================================
-        // 🔴 1. COLOQUE SUAS CHAVES AQUI
+        // 🔴 COLOQUE SUAS CHAVES AQUI
         // ============================================
         const firebaseConfig = {
             apiKey: "SUA_API_KEY",
@@ -169,68 +191,73 @@
         };
         // ============================================
 
-        // ID da empresa no JSON
         const COMPANY_ID = "joao_burguer"; 
 
-        // Função Principal (Global, sem type=module)
-        function app() {
-            return {
+        // Aguarda o Alpine carregar para registrar o componente
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('vendasApp', () => ({
                 loading: true,
                 sending: false,
                 errorMessage: '',
                 modalOpen: false,
                 empresa: {},
-                cardapio: {},
+                cardapioLista: [], // Lista processada para evitar erros
                 cart: [],
                 customerName: '',
                 customerAddress: '',
                 db: null,
-                push: null,
-                ref: null,
 
                 async init() {
-                    console.log("Iniciando app...");
                     try {
-                        // IMPORTAÇÃO DINÂMICA (Isso resolve o erro "not defined")
-                        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
-                        const { getDatabase, ref, get, child, push } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
-
-                        // Guardar referências para usar depois
-                        this.push = push;
-                        this.ref = ref;
-
-                        // Inicializa Firebase
-                        const appFirebase = initializeApp(firebaseConfig);
-                        this.db = getDatabase(appFirebase);
-                        
-                        // Busca dados
+                        const app = initializeApp(firebaseConfig);
+                        this.db = getDatabase(app);
                         const dbRef = ref(this.db);
+                        
+                        // Busca os dados
                         const snapshot = await get(child(dbRef, `empresas/${COMPANY_ID}`));
 
                         if (snapshot.exists()) {
                             const data = snapshot.val();
                             this.empresa = data;
-                            this.cardapio = data.cardapio || {};
-                            console.log("Dados carregados com sucesso!");
-                        } else {
-                            throw new Error(`Dados não encontrados no caminho: empresas/${COMPANY_ID}`);
-                        }
+                            
+                            // TRATAMENTO DE ERRO "i.insert"
+                            // Transforma o Objeto ou Array do Firebase em uma lista limpa
+                            const rawCardapio = data.cardapio || {};
+                            this.cardapioLista = Object.entries(rawCardapio).map(([key, value]) => {
+                                // Se o Firebase retornar null em algum índice, ignoramos
+                                if(!value) return null;
+                                return {
+                                    id: key,
+                                    ...value
+                                };
+                            }).filter(item => item !== null); // Remove itens nulos
 
+                        } else {
+                            throw new Error("Empresa não encontrada no banco de dados.");
+                        }
                     } catch (error) {
                         console.error(error);
                         this.errorMessage = error.message;
-                        if(error.code === 'PERMISSION_DENIED') {
-                            this.errorMessage = "ERRO DE PERMISSÃO: Vá no Firebase > Database > Regras e mude para true.";
-                        }
+                        if(error.code === 'PERMISSION_DENIED') this.errorMessage = "Acesso Negado: Verifique as Regras do Firebase.";
                     } finally {
                         this.loading = false;
                     }
                 },
 
-                addToCart(id, item) {
-                    const existing = this.cart.find(c => c.id === id);
-                    if (existing) existing.qtd++;
-                    else this.cart.push({ id, nome: item.nome, preco: item.preco, qtd: 1 });
+                addToCart(item) {
+                    const existing = this.cart.find(c => c.id === item.id);
+                    if (existing) {
+                        existing.qtd++;
+                    } else {
+                        // Importante: Quebrar a referência com JSON.parse/stringify
+                        this.cart.push({
+                            id: item.id,
+                            nome: item.nome,
+                            preco: item.preco,
+                            qtd: 1
+                        });
+                    }
+                    if(navigator.vibrate) navigator.vibrate(50);
                 },
 
                 removeFromCart(id) {
@@ -248,44 +275,44 @@
                     return this.cart.reduce((acc, item) => acc + item.qtd, 0);
                 },
 
-                formatMoney(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); },
+                formatMoney(v) { 
+                    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); 
+                },
                 
-                formatPhone(p) { return p ? p.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '($2) $3-$4') : ''; },
+                formatPhone(p) { 
+                    return p ? p.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '($2) $3-$4') : ''; 
+                },
 
                 async sendOrder() {
-                    if (!this.customerName || !this.customerAddress) {
-                        alert("Por favor, preencha seu nome e endereço.");
-                        return;
-                    }
-
+                    if (!this.customerName || !this.customerAddress) return alert("Preencha nome e endereço!");
+                    
                     this.sending = true;
                     try {
-                        const pedido = {
+                        // Limpa o objeto do carrinho para enviar JSON puro (sem Proxy do Alpine)
+                        const itensLimpos = JSON.parse(JSON.stringify(this.cart));
+                        
+                        await push(ref(this.db, `empresas/${COMPANY_ID}/pedidos`), {
                             cliente: this.customerName,
                             endereco: this.customerAddress,
-                            itens: JSON.parse(JSON.stringify(this.cart)), // Remove proxies do Alpine
+                            itens: itensLimpos,
                             total: this.cart.reduce((acc, i) => acc + (i.preco * i.qtd), 0),
                             data: new Date().toISOString(),
                             status: 'pendente'
-                        };
+                        });
 
-                        // Salva no Firebase usando as funções importadas dinamicamente
-                        await this.push(this.ref(this.db, `empresas/${COMPANY_ID}/pedidos`), pedido);
-                        
-                        alert("Pedido enviado com sucesso! A cozinha já recebeu.");
+                        alert("Pedido enviado com sucesso!");
                         this.modalOpen = false;
                         this.cart = [];
                         this.customerName = '';
                         this.customerAddress = '';
-
                     } catch (e) {
-                        alert("Erro ao enviar: " + e.message);
+                        alert("Erro: " + e.message);
                     } finally {
                         this.sending = false;
                     }
                 }
-            }
-        }
+            }));
+        });
     </script>
 </body>
 </html>
