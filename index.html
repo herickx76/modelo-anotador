@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <h1>🍔 Burger King do Dev</h1>
+        <p>Monte seu pedido abaixo!</p>
+    </header>
+
+    <div class="container">
+        <h2 style="margin-bottom: 15px;">Destaques</h2>
+        <div class="menu-grid" id="menu-container">
+            </div>
+    </div>
+
+    <div class="fab-cart" onclick="toggleCart()">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="badge" id="cart-count">0</span>
+    </div>
+
+    <div class="modal-overlay" id="cart-modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>Seu Pedido</h2>
+                <button onclick="toggleCart()" style="background:none; border:none; font-size:1.5rem;">&times;</button>
+            </div>
+            
+            <div id="cart-items"></div>
+            
+            <div style="margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">
+                    <span>Total:</span>
+                    <span id="cart-total">R$ 0,00</span>
+                </div>
+            </div>
+
+            <form id="checkout-form" style="margin-top: 20px;">
+                <input type="text" id="cliente-nome" placeholder="Seu Nome" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <input type="tel" id="cliente-phone" placeholder="WhatsApp (DDD+Num)" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <input type="text" id="cliente-endereco" placeholder="Endereço de Entrega" required style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                
+                <button type="submit" class="btn-add" style="background: var(--dark); padding: 15px;">FINALIZAR PEDIDO 🚀</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // ⚠️ USE SUA CONFIGURAÇÃO DO FIREBASE AQUI
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "clinicahcc-9b1c8.firebaseapp.com",
+            databaseURL: "https://clinicahcc-9b1c8-default-rtdb.firebaseio.com",
+            projectId: "clinicahcc-9b1c8",
+            storageBucket: "clinicahcc-9b1c8.firebasestorage.app",
+            messagingSenderId: "238456120590",
+            appId: "1:238456120590:web:2c070d10f7e83597d5e35f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- DADOS DO CARDÁPIO (Pode vir do banco, mas aqui está fixo pra ser rápido) ---
+        const menu = [
+            { id: 1, nome: "X-Bacon Supremo", preco: 25.00, img: "https://cdn-icons-png.flaticon.com/512/3075/3075977.png" },
+            { id: 2, nome: "Smash Duplo", preco: 20.00, img: "https://cdn-icons-png.flaticon.com/512/3075/3075977.png" },
+            { id: 3, nome: "Coca-Cola Lata", preco: 6.00, img: "https://cdn-icons-png.flaticon.com/512/2405/2405479.png" },
+            { id: 4, nome: "Batata Frita", preco: 12.00, img: "https://cdn-icons-png.flaticon.com/512/305/305385.png" }
+        ];
+
+        let cart = [];
+
+        // Renderizar Menu
+        const container = document.getElementById('menu-container');
+        menu.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'card-produto';
+            div.innerHTML = `
+                <img src="${item.img}" alt="${item.nome}">
+                <h3>${item.nome}</h3>
+                <div class="price">R$ ${item.preco.toFixed(2)}</div>
+                <button class="btn-add" onclick="window.addToCart(${item.id})">Adicionar</button>
+            `;
+            container.appendChild(div);
+        });
+
+        // Funções Globais
+        window.addToCart = (id) => {
+            const item = menu.find(p => p.id === id);
+            cart.push(item);
+            updateCartUI();
+        };
+
+        window.toggleCart = () => {
+            const modal = document.getElementById('cart-modal');
+            modal.classList.toggle('active');
+        };
+
+        window.removeItem = (index) => {
+            cart.splice(index, 1);
+            updateCartUI();
+        };
+
+        function updateCartUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const itemsDiv = document.getElementById('cart-items');
+            itemsDiv.innerHTML = '';
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                total += item.preco;
+                itemsDiv.innerHTML += `
+                    <div class="cart-item">
+                        <span>${item.nome}</span>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <strong>R$ ${item.preco.toFixed(2)}</strong>
+                            <i class="fas fa-trash" style="color:red; cursor:pointer;" onclick="removeItem(${index})"></i>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('cart-total').innerText = `R$ ${total.toFixed(2)}`;
+        }
+
+        // Enviar Pedido
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(cart.length === 0) return alert("Carrinho vazio!");
+
+            const nome = document.getElementById('cliente-nome').value;
+            const fone = document.getElementById('cliente-phone').value; // Importante pro BOT
+            const end = document.getElementById('cliente-endereco').value;
+            
+            // Formatando numero (removendo espaços e traços)
+            const foneClean = fone.replace(/\D/g, ''); 
+            const phoneFinal = foneClean.includes('@c.us') ? foneClean : `${foneClean}@c.us`;
+
+            const total = cart.reduce((sum, i) => sum + i.preco, 0);
+            const desc = cart.map(i => i.nome).join(', ');
+
+            const pedido = {
+                cliente: nome,
+                telefone: phoneFinal,
+                endereco: end,
+                itens: desc,
+                total: total,
+                status: 'pendente', // Status Inicial
+                data: new Date().toISOString().split('T')[0],
+                timestamp: Date.now()
+            };
+
+            await push(ref(db, 'pedidos'), pedido);
+            
+            alert("Pedido Enviado! Acompanhe pelo WhatsApp.");
+            cart = [];
+            updateCartUI();
+            toggleCart();
+        });
+    </script>
+</body>
+</html>
