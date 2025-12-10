@@ -17,11 +17,8 @@
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         [x-cloak] { display: none !important; }
         
-        /* Shimmer Effect (Carregando) */
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
+        /* Shimmer (Carregamento) */
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
         .animate-shimmer {
             animation: shimmer 2s infinite linear;
             background: linear-gradient(to right, #f3f4f6 4%, #e5e7eb 25%, #f3f4f6 36%);
@@ -31,13 +28,11 @@
 
     <script>
         tailwind.config = {
-            theme: {
-                extend: { colors: { brand: { 500: '#ef4444', 600: '#dc2626', 900: '#7f1d1d' } } }
-            }
+            theme: { extend: { colors: { brand: { 500: '#ef4444', 600: '#dc2626', 900: '#7f1d1d' } } } }
         }
     </script>
 </head>
-<body class="bg-gray-50 text-gray-800" x-data="vendasApp">
+<body class="bg-gray-50 text-gray-800" x-data="cardapioApp()">
 
     <div x-show="errorMessage" x-cloak class="fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[100] text-center shadow-lg font-bold">
         <p>⚠️ <span x-text="errorMessage"></span></p>
@@ -49,17 +44,13 @@
         
         <div class="relative z-20 container mx-auto px-4 h-full flex flex-col justify-end pb-8 text-white">
             <div x-show="loading" class="flex items-center gap-2">
-                <i class="ph ph-spinner animate-spin text-2xl"></i>
-                <span>Carregando informações...</span>
+                <i class="ph ph-spinner animate-spin text-2xl"></i> <span>Conectando...</span>
             </div>
-
             <div x-show="!loading" x-cloak>
-                <div class="inline-flex items-center gap-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mb-2">
-                    <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> ABERTO
-                </div>
-                <h1 class="text-4xl md:text-5xl font-bold mb-1 shadow-sm" x-text="empresa.nome_fantasia || 'Bem-vindo'"></h1>
+                <div class="inline-flex items-center gap-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mb-2">ABERTO</div>
+                <h1 class="text-4xl md:text-5xl font-bold mb-1" x-text="empresa.nome_fantasia || 'Bem-vindo'"></h1>
                 <p class="text-gray-200 text-sm flex items-center gap-2">
-                    <i class="ph ph-whatsapp-logo text-lg text-green-400"></i>
+                    <i class="ph ph-whatsapp-logo text-green-400 text-lg"></i>
                     <span x-text="formatPhone(empresa.telefone)"></span>
                 </p>
             </div>
@@ -67,30 +58,25 @@
     </header>
 
     <main class="container mx-auto px-4 py-8 pb-32 max-w-4xl">
-        
         <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <template x-for="i in 4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border h-32 animate-shimmer"></div>
-            </template>
+            <template x-for="i in 4"><div class="bg-white p-4 rounded-xl shadow-sm border h-32 animate-shimmer"></div></template>
         </div>
 
         <div x-show="!loading" x-cloak>
             <div x-show="cardapioLista.length === 0" class="text-center py-10 bg-white rounded-xl shadow-sm">
-                <i class="ph ph-hamburger text-4xl text-gray-300 mb-2"></i>
-                <p class="text-gray-500">Nenhum item disponível no cardápio.</p>
+                <p class="text-gray-500">Nenhum item disponível.</p>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <template x-for="item in cardapioLista" :key="item.id">
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between gap-4 hover:shadow-md transition duration-200">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between gap-4 hover:shadow-md transition">
                         <div class="flex flex-col justify-between flex-1">
                             <div>
-                                <h3 class="font-bold text-gray-900 text-lg leading-tight" x-text="item.nome"></h3>
-                                <p class="text-sm text-gray-500 mt-1 line-clamp-2" x-text="item.desc || 'Sem descrição'"></p>
+                                <h3 class="font-bold text-gray-900 text-lg" x-text="item.nome"></h3>
+                                <p class="text-sm text-gray-500 mt-1 line-clamp-2" x-text="item.desc"></p>
                             </div>
                             <div class="flex justify-between items-center mt-4">
                                 <span class="font-bold text-brand-600 text-lg" x-text="formatMoney(item.preco)"></span>
-                                <button @click="addToCart(item)" class="bg-gray-100 w-10 h-10 rounded-full flex items-center justify-center text-brand-600 hover:bg-brand-600 hover:text-white transition active:scale-95 shadow-sm">
+                                <button @click="addToCart(item)" class="bg-gray-100 w-10 h-10 rounded-full flex items-center justify-center text-brand-600 hover:bg-brand-600 hover:text-white transition shadow-sm">
                                     <i class="ph ph-plus font-bold"></i>
                                 </button>
                             </div>
@@ -101,70 +87,39 @@
         </div>
     </main>
 
-    <div class="fixed bottom-4 left-4 right-4 z-40" 
-         x-show="cart.length > 0" 
-         x-cloak
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="translate-y-20 opacity-0"
-         x-transition:enter-end="translate-y-0 opacity-100">
-        
-        <button @click="modalOpen = true" class="w-full max-w-2xl mx-auto bg-brand-600 text-white shadow-2xl rounded-2xl p-4 flex items-center justify-between hover:bg-brand-700 transition active:scale-[0.99]">
+    <div class="fixed bottom-4 left-4 right-4 z-40" x-show="cart.length > 0" x-cloak x-transition.duration.300ms>
+        <button @click="modalOpen = true" class="w-full max-w-2xl mx-auto bg-brand-600 text-white shadow-2xl rounded-2xl p-4 flex items-center justify-between hover:bg-brand-700 transition">
             <div class="flex items-center gap-3">
                 <div class="bg-white text-brand-600 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm" x-text="cartCount"></div>
-                <div class="flex flex-col items-start leading-none">
-                    <span class="text-xs opacity-90">Total</span>
-                    <span class="font-bold text-lg" x-text="cartTotal"></span>
-                </div>
+                <div class="flex flex-col items-start leading-none"><span class="text-xs opacity-90">Total</span><span class="font-bold text-lg" x-text="cartTotal"></span></div>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="font-semibold text-sm">Ver Sacola</span>
-                <i class="ph ph-shopping-bag"></i>
-            </div>
+            <div class="flex items-center gap-2"><span class="font-semibold text-sm">Ver Sacola</span><i class="ph ph-shopping-bag"></i></div>
         </button>
     </div>
 
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center" 
-         x-show="modalOpen" 
-         x-cloak
-         style="display: none;">
-        
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" @click="modalOpen = false"></div>
-
-        <div class="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col relative z-10 animate-slide-up"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="translate-y-full"
-             x-transition:enter-end="translate-y-0">
-            
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center" x-show="modalOpen" x-cloak style="display: none;">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="modalOpen = false"></div>
+        <div class="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col relative z-10 animate-slide-up" x-transition>
             <div class="p-4 border-b flex items-center justify-between bg-gray-50">
                 <h3 class="font-bold text-lg">Seu Pedido</h3>
                 <button @click="modalOpen = false" class="text-gray-400 p-2"><i class="ph ph-x text-xl"></i></button>
             </div>
-
             <div class="flex-1 overflow-y-auto p-4 space-y-3">
                 <template x-for="(item, index) in cart" :key="index">
                     <div class="flex justify-between items-center border-b pb-3 last:border-0">
-                        <div>
-                            <p class="font-bold text-gray-900" x-text="item.nome"></p>
-                            <p class="text-xs text-gray-500" x-text="formatMoney(item.preco * item.qtd)"></p>
-                        </div>
+                        <div><p class="font-bold text-gray-900" x-text="item.nome"></p><p class="text-xs text-gray-500" x-text="formatMoney(item.preco * item.qtd)"></p></div>
                         <div class="flex items-center border rounded-lg h-8">
-                            <button @click="removeFromCart(item.id)" class="px-3 h-full text-brand-600 hover:bg-gray-100 font-bold">-</button>
+                            <button @click="removeFromCart(item.id)" class="px-3 h-full text-brand-600 font-bold hover:bg-gray-100">-</button>
                             <span class="px-3 text-sm font-semibold" x-text="item.qtd"></span>
-                            <button @click="addToCart(item)" class="px-3 h-full text-brand-600 hover:bg-gray-100 font-bold">+</button>
+                            <button @click="addToCart(item)" class="px-3 h-full text-brand-600 font-bold hover:bg-gray-100">+</button>
                         </div>
                     </div>
                 </template>
             </div>
-
             <div class="p-5 bg-gray-50 border-t space-y-3">
-                <div class="flex justify-between text-xl font-bold text-gray-900 mb-2">
-                    <span>Total:</span>
-                    <span x-text="cartTotal"></span>
-                </div>
-                
-                <input x-model="customerName" type="text" placeholder="Seu Nome" class="w-full p-3 rounded-xl border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
-                <input x-model="customerAddress" type="text" placeholder="Endereço Completo" class="w-full p-3 rounded-xl border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
-
+                <div class="flex justify-between text-xl font-bold text-gray-900 mb-2"><span>Total:</span><span x-text="cartTotal"></span></div>
+                <input x-model="customerName" type="text" placeholder="Seu Nome" class="w-full p-3 rounded-xl border outline-none focus:ring-1 focus:ring-brand-500">
+                <input x-model="customerAddress" type="text" placeholder="Endereço Completo" class="w-full p-3 rounded-xl border outline-none focus:ring-1 focus:ring-brand-500">
                 <button @click="sendOrder()" :disabled="sending" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow hover:bg-green-700 transition flex justify-center items-center gap-2 disabled:opacity-50">
                     <span x-show="!sending">Confirmar Pedido</span>
                     <i x-show="sending" class="ph ph-spinner animate-spin text-xl"></i>
@@ -173,146 +128,115 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, get, child, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
+    <script>
         // ============================================
         // 🔴 COLOQUE SUAS CHAVES AQUI
         // ============================================
-        const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_PROJETO.firebaseapp.com",
-            databaseURL: "https://SEU_PROJETO-default-rtdb.firebaseio.com",
-            projectId: "SEU_PROJETO_ID",
-            storageBucket: "SEU_PROJETO.appspot.com",
-            messagingSenderId: "NUMERO",
-            appId: "ID_DO_APP"
-        };
-        // ============================================
-
+const firebaseConfig = {
+  apiKey: "AIzaSyCikTxSJLoSBJeGrNRugs1MvWxCohakwnI",
+  authDomain: "database-anotador.firebaseapp.com",
+  databaseURL: "https://database-anotador-default-rtdb.firebaseio.com",
+  projectId: "database-anotador",
+  storageBucket: "database-anotador.firebasestorage.app",
+  messagingSenderId: "1026172295848",
+  appId: "1:1026172295848:web:b5193909feee24ac8d409d",
+  measurementId: "G-L1Z0YKXT9N"
+};
         const COMPANY_ID = "joao_burguer"; 
 
-        // Aguarda o Alpine carregar para registrar o componente
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('vendasApp', () => ({
+        // Função Global: CardapioApp
+        // Isso elimina o "ReferenceError: vendasApp is not defined"
+        function cardapioApp() {
+            return {
                 loading: true,
                 sending: false,
                 errorMessage: '',
                 modalOpen: false,
                 empresa: {},
-                cardapioLista: [], // Lista processada para evitar erros
+                cardapioLista: [],
                 cart: [],
                 customerName: '',
                 customerAddress: '',
                 db: null,
+                push: null,
+                ref: null,
 
                 async init() {
+                    console.log("Iniciando aplicação...");
                     try {
+                        // Importação dinâmica do Firebase (Isso resolve conflito de módulos)
+                        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+                        const { getDatabase, ref, get, child, push } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+
+                        // Guarda funções para usar depois
+                        this.push = push;
+                        this.ref = ref;
+
                         const app = initializeApp(firebaseConfig);
                         this.db = getDatabase(app);
-                        const dbRef = ref(this.db);
                         
-                        // Busca os dados
-                        const snapshot = await get(child(dbRef, `empresas/${COMPANY_ID}`));
+                        // Busca dados
+                        const snapshot = await get(child(ref(this.db), `empresas/${COMPANY_ID}`));
 
                         if (snapshot.exists()) {
                             const data = snapshot.val();
                             this.empresa = data;
-                            
-                            // TRATAMENTO DE ERRO "i.insert"
-                            // Transforma o Objeto ou Array do Firebase em uma lista limpa
-                            const rawCardapio = data.cardapio || {};
-                            this.cardapioLista = Object.entries(rawCardapio).map(([key, value]) => {
-                                // Se o Firebase retornar null em algum índice, ignoramos
-                                if(!value) return null;
-                                return {
-                                    id: key,
-                                    ...value
-                                };
-                            }).filter(item => item !== null); // Remove itens nulos
-
+                            // Converte JSON para Array limpo (Evita erro i.insert)
+                            const raw = data.cardapio || {};
+                            this.cardapioLista = Object.keys(raw).map(k => {
+                                if(!raw[k]) return null;
+                                return { id: k, ...raw[k] };
+                            }).filter(i => i);
                         } else {
-                            throw new Error("Empresa não encontrada no banco de dados.");
+                            throw new Error(`Dados não encontrados: empresas/${COMPANY_ID}`);
                         }
-                    } catch (error) {
-                        console.error(error);
-                        this.errorMessage = error.message;
-                        if(error.code === 'PERMISSION_DENIED') this.errorMessage = "Acesso Negado: Verifique as Regras do Firebase.";
+                    } catch (err) {
+                        console.error(err);
+                        this.errorMessage = err.message;
+                        if(err.code === 'PERMISSION_DENIED') this.errorMessage = "Erro de Permissão (Regras do Firebase).";
                     } finally {
                         this.loading = false;
                     }
                 },
 
                 addToCart(item) {
-                    const existing = this.cart.find(c => c.id === item.id);
-                    if (existing) {
-                        existing.qtd++;
-                    } else {
-                        // Importante: Quebrar a referência com JSON.parse/stringify
-                        this.cart.push({
-                            id: item.id,
-                            nome: item.nome,
-                            preco: item.preco,
-                            qtd: 1
-                        });
-                    }
-                    if(navigator.vibrate) navigator.vibrate(50);
+                    const exists = this.cart.find(c => c.id === item.id);
+                    if (exists) exists.qtd++;
+                    else this.cart.push({ id: item.id, nome: item.nome, preco: item.preco, qtd: 1 });
                 },
 
                 removeFromCart(id) {
-                    const index = this.cart.findIndex(c => c.id === id);
-                    if (index === -1) return;
-                    if (this.cart[index].qtd > 1) this.cart[index].qtd--;
-                    else this.cart.splice(index, 1);
+                    const idx = this.cart.findIndex(c => c.id === id);
+                    if (idx === -1) return;
+                    if (this.cart[idx].qtd > 1) this.cart[idx].qtd--;
+                    else this.cart.splice(idx, 1);
                 },
 
-                get cartTotal() {
-                    return this.formatMoney(this.cart.reduce((acc, i) => acc + (i.preco * i.qtd), 0));
-                },
-
-                get cartCount() {
-                    return this.cart.reduce((acc, item) => acc + item.qtd, 0);
-                },
-
-                formatMoney(v) { 
-                    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); 
-                },
-                
-                formatPhone(p) { 
-                    return p ? p.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '($2) $3-$4') : ''; 
-                },
+                get cartTotal() { return this.formatMoney(this.cart.reduce((a, i) => a + (i.preco * i.qtd), 0)); },
+                get cartCount() { return this.cart.reduce((a, i) => a + i.qtd, 0); },
+                formatMoney(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); },
+                formatPhone(p) { return p ? p.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '($2) $3-$4') : ''; },
 
                 async sendOrder() {
-                    if (!this.customerName || !this.customerAddress) return alert("Preencha nome e endereço!");
-                    
+                    if (!this.customerName || !this.customerAddress) return alert("Preencha seus dados!");
                     this.sending = true;
                     try {
-                        // Limpa o objeto do carrinho para enviar JSON puro (sem Proxy do Alpine)
-                        const itensLimpos = JSON.parse(JSON.stringify(this.cart));
-                        
-                        await push(ref(this.db, `empresas/${COMPANY_ID}/pedidos`), {
+                        const payload = JSON.parse(JSON.stringify(this.cart)); // Limpa proxy
+                        await this.push(this.ref(this.db, `empresas/${COMPANY_ID}/pedidos`), {
                             cliente: this.customerName,
                             endereco: this.customerAddress,
-                            itens: itensLimpos,
-                            total: this.cart.reduce((acc, i) => acc + (i.preco * i.qtd), 0),
+                            itens: payload,
+                            total: this.cart.reduce((a, i) => a + (i.preco * i.qtd), 0),
                             data: new Date().toISOString(),
                             status: 'pendente'
                         });
-
-                        alert("Pedido enviado com sucesso!");
-                        this.modalOpen = false;
-                        this.cart = [];
-                        this.customerName = '';
-                        this.customerAddress = '';
-                    } catch (e) {
-                        alert("Erro: " + e.message);
-                    } finally {
-                        this.sending = false;
-                    }
+                        alert("Pedido Enviado!");
+                        this.modalOpen = false; this.cart = []; this.customerName = '';
+                    } catch (e) { alert("Erro: " + e.message); } 
+                    finally { this.sending = false; }
                 }
-            }));
-        });
+            }
+        }
     </script>
 </body>
 </html>
