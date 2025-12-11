@@ -3,119 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Delivery</title>
+    <title>Painel Administrativo | Universo do Açaí</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body style="background: #eef2f5;">
+<body>
 
-    <header style="background: #111; display: flex; justify-content: space-between; align-items: center;">
-        <h1>👨‍🍳 Cozinha / Admin</h1>
-        <button onclick="location.reload()" style="background:transparent; border:1px solid #fff; color:#fff; padding:5px 10px;">Atualizar</button>
-    </header>
+    <section id="view-admin" style="position: relative; height: 100vh; display: flex; flex-direction: column;">
+        
+ <div class="admin-nav">
+    <button class="admin-tab active" onclick="mudarAbaAdmin('financeiro')">Financeiro</button>
+    <button class="admin-tab" onclick="mudarAbaAdmin('estoque')">Estoque</button>
+    <button class="admin-tab" onclick="mudarAbaAdmin('promocional')">Cupons</button>
+    <button class="admin-tab" onclick="mudarAbaAdmin('pedidos')">Pedidos</button>
+</div>
 
-    <div class="container">
-        <div class="dashboard-stats">
-            <div class="stat-box">
-                <small>Faturamento Hoje</small>
-                <h3 id="faturamento-dia">R$ 0,00</h3>
+<div class="admin-body">
+
+    <div id="admin-financeiro" class="admin-page" style="display: block;">
+        <h3>Faturamento e Métricas</h3>
+        <div class="dashboard-grid">
+            <div class="card-dash">
+                <span>Vendas Hoje</span>
+                <strong id="fat-diario">R$ 0,00</strong>
             </div>
-            <div class="stat-box">
-                <small>Pedidos Pendentes</small>
-                <h3 id="total-pendentes">0</h3>
+            <div class="card-dash">
+                <span>Vendas Mês</span>
+                <strong id="fat-mensal">R$ 0,00</strong>
+            </div>
+            <div class="card-dash">
+                <span>Vendas Ano</span>
+                <strong id="fat-anual">R$ 0,00</strong>
+            </div>
+            <div class="card-dash" style="background: #e1f5fe;">
+                <span>Total Pedidos (Mês)</span>
+                <strong id="total-pedidos-mes">0</strong>
             </div>
         </div>
+        <p style="font-size:0.8rem; color:#666; margin-top:10px;">* O cálculo de <i>Lucro Líquido</i> requer cadastro de preço de custo em cada ingrediente. Exibindo Faturamento Bruto.</p>
+    </div>
 
-        <h2 style="margin: 30px 0 15px;">Pedidos em Andamento</h2>
-        <div id="lista-pedidos">
-            <p>Carregando pedidos...</p>
+    <div id="admin-estoque" class="admin-page" style="display: none;">
+        <h3>Controle de Estoque Rápido</h3>
+        <p style="margin-bottom:15px; font-size:0.9rem;">Gerencie a disponibilidade dos itens que aparecem no cardápio.</p>
+        <div id="lista-estoque-visual" class="estoque-grid">
+            <p>Carregando itens...</p>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <div id="admin-promocional" class="admin-page" style="display: none;">
+        <div class="admin-form-group">
+            <h3>Criar Cupom</h3>
+            <input type="text" id="cupomCodigo" placeholder="Código (Ex: DESCONTO10)" class="input-admin" style="text-transform:uppercase;">
+            <input type="number" id="cupomValor" placeholder="Desconto em %" class="input-admin">
+            <button class="btn-add" style="width: 100%;" onclick="adicionarCupom()">Criar Cupom</button>
+        </div>
+        <hr>
+        <h4>Cupons Ativos:</h4>
+        <div id="lista-cupons"></div>
+    </div>
 
-        // ⚠️ USE A MESMA CONFIG
-        const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "clinicahcc-9b1c8.firebaseapp.com",
-            databaseURL: "https://clinicahcc-9b1c8-default-rtdb.firebaseio.com",
-            projectId: "clinicahcc-9b1c8",
-            storageBucket: "clinicahcc-9b1c8.firebasestorage.app",
-            messagingSenderId: "238456120590",
-            appId: "1:238456120590:web:2c070d10f7e83597d5e35f"
-        };
+    <div id="admin-pedidos" class="admin-page" style="display: none;">
+        <div id="lista-pedidos-realtime" class="order-list">
+            <p style="text-align: center; color: #999;">Carregando pedidos...</p>
+        </div>
+    </div>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    </div>
+    </section>
 
-        // Monitorar Pedidos em Tempo Real
-        const pedidosRef = ref(db, 'pedidos');
-        
-        onValue(pedidosRef, (snapshot) => {
-            const data = snapshot.val();
-            const lista = document.getElementById('lista-pedidos');
-            lista.innerHTML = '';
-            
-            let totalDia = 0;
-            let countPendentes = 0;
-            const hoje = new Date().toISOString().split('T')[0];
-
-            if(!data) {
-                lista.innerHTML = '<p>Sem pedidos no momento.</p>';
-                return;
-            }
-
-            // Converter objeto em array e ordenar por timestamp (mais recente primeiro)
-            const arr = Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse();
-
-            arr.forEach(pedido => {
-                // Cálculo Financeiro (Só soma se finalizado e for de hoje)
-                if(pedido.status === 'finalizado' && pedido.data === hoje) {
-                    totalDia += pedido.total;
-                }
-                if(pedido.status === 'pendente') countPendentes++;
-
-                // Renderizar Card
-                const card = document.createElement('div');
-                card.className = `pedido-card ${pedido.status}`;
-                
-                // Mapeamento de Status para cores/texto
-                let statusTexto = pedido.status.toUpperCase();
-                
-                card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between;">
-                        <h3>#${pedido.id.slice(-4)} - ${pedido.cliente}</h3>
-                        <span style="font-weight:bold;">R$ ${pedido.total.toFixed(2)}</span>
-                    </div>
-                    <p style="color:#666; font-size:0.9rem;">${pedido.itens}</p>
-                    <p style="font-size:0.8rem; margin-top:5px;">📍 ${pedido.endereco}</p>
-                    
-                    <div style="margin-top:10px; padding:5px; background:#f0f0f0; display:inline-block; border-radius:5px; font-size:0.8rem;">
-                        Status: <strong>${statusTexto}</strong>
-                    </div>
-
-                    <div class="status-btn-group">
-                        <button class="btn-status" style="background:#3d5afe;" onclick="window.mudarStatus('${pedido.id}', 'preparo')">👨‍🍳 Em Preparo</button>
-                        <button class="btn-status" style="background:#ffea00; color:#000;" onclick="window.mudarStatus('${pedido.id}', 'entrega')">🛵 Saiu p/ Entrega</button>
-                        <button class="btn-status" style="background:#00c853;" onclick="window.mudarStatus('${pedido.id}', 'finalizado')">✅ Finalizar</button>
-                        <button class="btn-status" style="background:#d32f2f;" onclick="window.mudarStatus('${pedido.id}', 'cancelado')">❌ Cancelar</button>
-                    </div>
-                `;
-                lista.appendChild(card);
-            });
-
-            // Atualiza Dashboard
-            document.getElementById('faturamento-dia').innerText = `R$ ${totalDia.toFixed(2)}`;
-            document.getElementById('total-pendentes').innerText = countPendentes;
-        });
-
-        // Função Global para mudar status
-        window.mudarStatus = (id, novoStatus) => {
-            if(confirm(`Mudar status para ${novoStatus}? O cliente será avisado.`)) {
-                update(ref(db, `pedidos/${id}`), { status: novoStatus });
-            }
-        };
-    </script>
+    <script type="module" src="admin.js"></script>
 </body>
 </html>

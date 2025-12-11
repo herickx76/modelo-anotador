@@ -1,343 +1,182 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cardápio Digital</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-    <style>
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        /* Utilitários para esconder/mostrar */
-        .hidden { display: none !important; }
-        
-        /* Animação do Modal */
-        .modal-enter { animation: slideUp 0.3s ease-out forwards; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        /* Loader Shimmer */
-        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
-        .skeleton {
-            animation: shimmer 2s infinite linear;
-            background: linear-gradient(to right, #f3f4f6 4%, #e5e7eb 25%, #f3f4f6 36%);
-            background-size: 1000px 100%;
-        }
-    </style>
-
-    <script>
-        tailwind.config = {
-            theme: { extend: { colors: { brand: { 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c' } } } }
-        }
-    </script>
+    <title>Universo do Açaí</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body>
 
-    <div id="loading-screen" class="fixed inset-0 bg-white z-[60] flex flex-col items-center justify-center transition-opacity duration-500">
-        <i class="ph ph-spinner animate-spin text-4xl text-brand-600 mb-4"></i>
-        <p class="text-gray-500 font-medium">Carregando cardápio...</p>
-    </div>
-
-    <header class="relative h-64 bg-gray-900 overflow-hidden">
-        <div class="absolute inset-0 bg-black/50 z-10"></div>
-        <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000" class="absolute inset-0 w-full h-full object-cover">
-        
-        <div class="relative z-20 container mx-auto px-4 h-full flex flex-col justify-end pb-8 text-white">
-            <div class="inline-flex items-center gap-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mb-2">ABERTO</div>
-            <h1 id="company-name" class="text-4xl md:text-5xl font-bold mb-1">...</h1>
-            <p class="text-gray-200 text-sm flex items-center gap-2">
-                <i class="ph ph-whatsapp-logo text-green-400 text-lg"></i>
-                <span id="company-phone">...</span>
-            </p>
+    <header id="main-header" class="header-purple">
+        <div class="header-content">
+            <div class="profile-pic">
+                <img src="logo.png" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/185/185983.png'">
+            </div>
+            <div class="contact-info">
+                <h3>Universo do Açaí <i class="fas fa-check-circle verified"></i></h3>
+                <p id="header-status">Aberto agora</p>
+            </div>
+        </div>
+        <div class="nav-tabs mobile-only">
+            <button class="tab-btn active" onclick="mudarAba('cardapio')" id="btn-cardapio">CARDÁPIO 📋</button>
+            <button class="tab-btn" onclick="mudarAba('chat')" id="btn-chat">CHAT 💬</button>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8 pb-32 max-w-4xl">
-        <div id="menu-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            </div>
-    </main>
-
-    <div id="cart-float" class="fixed bottom-4 left-4 right-4 z-40 hidden transition-all duration-300 transform translate-y-0">
-        <button onclick="window.toggleModal(true)" class="w-full max-w-2xl mx-auto bg-brand-600 text-white shadow-2xl rounded-2xl p-4 flex items-center justify-between hover:bg-brand-700 transition active:scale-[0.98]">
-            <div class="flex items-center gap-3">
-                <div id="cart-count" class="bg-white text-brand-600 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">0</div>
-                <div class="flex flex-col items-start leading-none gap-1">
-                    <span class="text-xs opacity-90">Total</span>
-                    <span id="cart-total-float" class="font-bold text-lg">R$ 0,00</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="font-semibold text-sm">Ver Sacola</span>
-                <i class="ph ph-shopping-bag"></i>
-            </div>
-        </button>
-    </div>
-
-    <div id="modal-overlay" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center" onclick="if(event.target === this) window.toggleModal(false)">
+    <main class="main-container">
         
-        <div class="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col relative modal-enter">
-            
-            <div class="p-4 border-b flex items-center justify-between bg-gray-50">
-                <h3 class="font-bold text-lg text-gray-800">Seu Pedido</h3>
-                <button onclick="window.toggleModal(false)" class="text-gray-400 hover:text-red-500 p-2"><i class="ph ph-x text-xl"></i></button>
-            </div>
-
-            <div id="cart-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
-                </div>
-
-            <div class="p-5 bg-gray-50 border-t space-y-3">
-                <div class="flex justify-between text-xl font-bold text-gray-900 mb-2">
-                    <span>Total:</span>
-                    <span id="cart-total-modal">R$ 0,00</span>
-                </div>
+        <section id="view-cardapio" class="section-content active-section">
+            <div class="slider-container">
                 
-                <input id="input-name" type="text" placeholder="Seu Nome Completo" class="w-full p-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-brand-600 transition">
-                <input id="input-address" type="text" placeholder="Endereço de Entrega" class="w-full p-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-brand-600 transition">
+                <div class="slide-page" id="step-1-selection">
+                    <div class="menu-wrapper">
+                        <div class="brand-banner"><img src="logo.png" alt="Universo do Açaí"></div>
+                        <h2 class="menu-title">O que vamos pedir hoje? 😋</h2>
 
-                <button id="btn-send" onclick="window.finalizarPedido()" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 transition flex justify-center items-center gap-2">
-                    <span id="btn-text">Confirmar Pedido</span>
-                    <i id="btn-icon" class="ph ph-whatsapp-logo text-xl"></i>
+                        <div class="category-block">
+                            <h3 class="cat-title"><i class="fas fa-box-open"></i> Isopor</h3>
+                            <div class="size-grid">
+                                <div class="size-card" onclick="abrirMontagem('Isopor 300ml', 12.00)">
+                                    <div class="card-img"><img src="fp2.jpeg" alt="300ml"></div>
+                                    <div class="card-info"><span class="label">300ml</span><span class="price">R$ 12,00</span></div>
+                                </div>
+                                <div class="size-card" onclick="abrirMontagem('Isopor 400ml', 15.00)">
+                                    <div class="card-img"><img src="fp3.jpeg" alt="400ml"></div>
+                                    <div class="card-info"><span class="label">400ml</span><span class="price">R$ 15,00</span></div>
+                                </div>
+                                <div class="size-card" onclick="abrirMontagem('Isopor 500ml', 17.00)">
+                                    <div class="card-img"><img src="fp4.jpeg" alt="500ml"></div>
+                                    <div class="card-info"><span class="label">500ml</span><span class="price">R$ 17,00</span></div>
+                                </div>
+                                <div class="size-card" onclick="abrirMontagem('Isopor 1 Litro', 30.00)">
+                                    <div class="card-img"><img src="fp5.jpeg" alt="1 Litro"></div>
+                                    <div class="card-info"><span class="label">1 Litro</span><span class="price">R$ 30,00</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="category-block">
+                            <h3 class="cat-title"><i class="fas fa-glass-whiskey"></i> Copos</h3>
+                            <div class="size-grid">
+                                <div class="size-card" onclick="abrirMontagem('Copo 330ml', 12.00)">
+                                    <div class="card-img"><img src="fp6.jpeg" alt="330ml"></div>
+                                    <div class="card-info"><span class="label">330ml</span><span class="price">R$ 12,00</span></div>
+                                </div>
+                                <div class="size-card" onclick="abrirMontagem('Copo 550ml', 17.00)">
+                                    <div class="card-img"><img src="fp7.jpeg" alt="550ml"></div>
+                                    <div class="card-info"><span class="label">550ml</span><span class="price">R$ 17,00</span></div>
+                                </div>
+                                <div class="size-card" onclick="abrirMontagem('Copo 770ml', 23.00)">
+                                    <div class="card-img"><img src="fp8.jpeg" alt="770ml"></div>
+                                    <div class="card-info"><span class="label">770ml</span><span class="price">R$ 23,00</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-footer">
+<button class="btn-secret" onclick="tentarLoginAdmin()">
+    <i class="fas fa-lock"></i> Área Admin
+</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="slide-page" id="step-2-customization">
+                    <div class="menu-wrapper">
+                        <div class="back-header" onclick="voltarMenu()">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </div>
+
+                        <div class="product-header">
+                            <h2 id="produto-nome">Produto</h2>
+                            <span id="produto-base-price">R$ 0,00</span>
+                        </div>
+                        
+                        <form id="acaiForm">
+                            <div class="menu-card">
+                                <div class="card-header">
+                                    1. Sabores <small id="txt-limite-sabor">(Até 2)</small>
+                                    <span class="badge-required">Obrigatório</span>
+                                </div>
+                                <div class="options-list" id="lista-sabores"></div>
+                            </div>
+
+                            <div class="menu-card">
+                                <div class="card-header">
+                                    2. Recheios <small id="txt-limite-recheio">(Até 7)</small>
+                                    <span class="badge-free">Grátis</span>
+                                </div>
+                                <div class="options-list" id="lista-recheios"></div>
+                            </div>
+
+                            <div class="menu-card">
+                                <div class="card-header">
+                                    3. Adicionais Pagos <small>(Ilimitado)</small>
+                                </div>
+                                <div class="options-list" id="lista-adicionais"></div>
+                            </div>
+
+                            <div class="menu-card">
+                                <div class="card-header">📝 Seus Dados</div>
+                                <div style="padding: 10px; display: flex; flex-direction: column; gap: 10px;">
+                                    <input type="text" id="clienteNome" placeholder="Seu Nome" class="input-field">
+                                    <input type="tel" id="clienteZap" placeholder="Seu WhatsApp (com DDD)" class="input-field">
+                                    
+                                    <div style="display: flex; gap: 5px;">
+                                        <input type="text" id="cupomInput" placeholder="Tem cupom?" class="input-field">
+                                        <button type="button" onclick="verificarCupom()" style="padding: 0 15px; border: none; background: var(--brand-purple); color: white; border-radius: 8px;">Aplicar</button>
+                                    </div>
+                                    <div id="msgCupom" style="font-size: 0.8rem;"></div>
+                                </div>
+                            </div>
+
+                            <div style="height: 80px;"></div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="menu-footer hidden" id="barra-pedido">
+                <div class="total-info">
+                    <small>Total:</small>
+                    <span id="valorTotal">R$ 0,00</span>
+                </div>
+                <button class="btn-finish" onclick="enviarPedido()">
+                    Finalizar <i class="fas fa-check"></i>
                 </button>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, get, child, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        // ==========================================
-        // CONFIGURAÇÃO (Troque pelos seus dados)
-        // ==========================================
-const firebaseConfig = {
-  apiKey: "AIzaSyCikTxSJLoSBJeGrNRugs1MvWxCohakwnI",
-  authDomain: "database-anotador.firebaseapp.com",
-  databaseURL: "https://database-anotador-default-rtdb.firebaseio.com",
-  projectId: "database-anotador",
-  storageBucket: "database-anotador.firebasestorage.app",
-  messagingSenderId: "1026172295848",
-  appId: "1:1026172295848:web:b5193909feee24ac8d409d",
-  measurementId: "G-L1Z0YKXT9N"
-};
-        const COMPANY_ID = "maria_acai"; 
-
-        // ESTADO GLOBAL DO APP
-        let cart = [];
-        let db = null;
-        let menuData = {};
-
-        // INICIALIZAÇÃO
-        async function init() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getDatabase(app);
-                
-                // Pega dados do banco
-                const dbRef = ref(db);
-                const snapshot = await get(child(dbRef, `empresas/${COMPANY_ID}`));
-
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    renderHeader(data);
-                    renderMenu(data.cardapio);
-                } else {
-                    alert("Empresa não encontrada! Verifique o ID no código.");
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Erro ao conectar: " + error.message);
-            } finally {
-                // Remove tela de loading
-                document.getElementById('loading-screen').classList.add('hidden');
-            }
-        }
-
-        // RENDERIZAÇÃO
-        function renderHeader(data) {
-            document.getElementById('company-name').innerText = data.nome_fantasia || "Cardápio";
-            document.getElementById('company-phone').innerText = formatPhone(data.telefone);
-        }
-
-        function renderMenu(cardapio) {
-            const container = document.getElementById('menu-container');
-            container.innerHTML = ''; // Limpa
-
-            if (!cardapio) {
-                container.innerHTML = '<p class="text-gray-500 text-center col-span-2">Nenhum item disponível.</p>';
-                return;
-            }
-
-            // Loop pelos itens
-            Object.entries(cardapio).forEach(([key, item]) => {
-                // Guarda referência dos dados para usar no carrinho
-                menuData[key] = { id: key, ...item };
-
-                const html = `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between gap-4 hover:shadow-md transition">
-                        <div class="flex flex-col justify-between flex-1">
-                            <div>
-                                <h3 class="font-bold text-gray-900 text-lg leading-tight">${item.nome}</h3>
-                                <p class="text-sm text-gray-500 mt-1 line-clamp-2">${item.desc || 'Sem descrição'}</p>
-                            </div>
-                            <div class="flex justify-between items-center mt-4">
-                                <span class="font-bold text-brand-600 text-lg">${formatMoney(item.preco)}</span>
-                                <button onclick="window.addToCart('${key}')" 
-                                    class="bg-gray-100 text-brand-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-brand-600 hover:text-white transition shadow-sm active:scale-90">
-                                    <i class="ph ph-plus font-bold"></i>
-                                </button>
-                            </div>
-                        </div>
+        <section id="view-chat" class="section-content hidden-section">
+            <div class="chat-desktop-header">
+                <img src="logo.png" class="chat-header-logo">
+                <span>Dúvidas e Chat Online</span>
+            </div>
+            <div class="chat-bg" id="chatWindow">
+                <div class="date-badge">Hoje</div>
+                <div class="msg msg-bot">
+                    <div class="bubble">
+                        Olá! Bem-vindo ao <b>Universo do Açaí</b> 💜<br><br>
+                        Pergunte sobre: <b>Pix, Entrega, Endereço...</b>
+                        <span class="time">Agora</span>
                     </div>
-                `;
-                container.innerHTML += html;
-            });
-        }
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <div class="input-wrapper">
+                    <i class="far fa-smile icon-grey"></i>
+                    <input type="text" id="chatInput" placeholder="Mensagem" onkeypress="if(event.key === 'Enter') enviarMsg()">
+                </div>
+                <button class="btn-send-chat" onclick="enviarMsg()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </section>
 
-        function renderCartUI() {
-            const floatBar = document.getElementById('cart-float');
-            const countEl = document.getElementById('cart-count');
-            const totalFloat = document.getElementById('cart-total-float');
-            const totalModal = document.getElementById('cart-total-modal');
-            const listContainer = document.getElementById('cart-list');
+    </main>
 
-            // Cálculos
-            const total = cart.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
-            const count = cart.reduce((acc, item) => acc + item.qtd, 0);
-            const totalFmt = formatMoney(total);
-
-            // Atualiza textos
-            countEl.innerText = count;
-            totalFloat.innerText = totalFmt;
-            totalModal.innerText = totalFmt;
-
-            // Mostra/Esconde barra
-            if (count > 0) floatBar.classList.remove('hidden');
-            else floatBar.classList.add('hidden');
-
-            // Renderiza Lista no Modal
-            listContainer.innerHTML = '';
-            if (cart.length === 0) {
-                listContainer.innerHTML = '<p class="text-center text-gray-500 py-4">Sua sacola está vazia.</p>';
-            } else {
-                cart.forEach(item => {
-                    const itemHtml = `
-                        <div class="flex justify-between items-center border-b pb-3 last:border-0">
-                            <div>
-                                <p class="font-bold text-gray-900">${item.nome}</p>
-                                <p class="text-xs text-gray-500">${formatMoney(item.preco * item.qtd)}</p>
-                            </div>
-                            <div class="flex items-center border rounded-lg h-8">
-                                <button onclick="window.removeFromCart('${item.id}')" class="px-3 h-full text-brand-600 font-bold hover:bg-gray-100">-</button>
-                                <span class="px-3 text-sm font-semibold">${item.qtd}</span>
-                                <button onclick="window.addToCart('${item.id}')" class="px-3 h-full text-brand-600 font-bold hover:bg-gray-100">+</button>
-                            </div>
-                        </div>
-                    `;
-                    listContainer.innerHTML += itemHtml;
-                });
-            }
-        }
-
-        // FUNÇÕES GLOBAIS (Disponíveis para o HTML chamar)
-        window.addToCart = function(id) {
-            const itemOriginal = menuData[id];
-            if (!itemOriginal) return;
-
-            const existing = cart.find(c => c.id === id);
-            if (existing) {
-                existing.qtd++;
-            } else {
-                cart.push({ ...itemOriginal, qtd: 1 });
-            }
-            // Feedback de vibração
-            if (navigator.vibrate) navigator.vibrate(50);
-            renderCartUI();
-        };
-
-        window.removeFromCart = function(id) {
-            const idx = cart.findIndex(c => c.id === id);
-            if (idx === -1) return;
-            
-            if (cart[idx].qtd > 1) {
-                cart[idx].qtd--;
-            } else {
-                cart.splice(idx, 1);
-            }
-            renderCartUI();
-        };
-
-        window.toggleModal = function(show) {
-            const modal = document.getElementById('modal-overlay');
-            if (show) modal.classList.remove('hidden');
-            else modal.classList.add('hidden');
-        };
-
-        window.finalizarPedido = async function() {
-            const name = document.getElementById('input-name').value;
-            const address = document.getElementById('input-address').value;
-            const btn = document.getElementById('btn-send');
-            const btnText = document.getElementById('btn-text');
-
-            if (!name || !address) {
-                alert("Por favor, preencha nome e endereço!");
-                return;
-            }
-
-            // Estado de carregamento no botão
-            btn.disabled = true;
-            btnText.innerText = "Enviando...";
-            btn.classList.add('opacity-75');
-
-            try {
-                const pedido = {
-                    cliente: name,
-                    endereco: address,
-                    itens: cart,
-                    total: cart.reduce((acc, item) => acc + (item.preco * item.qtd), 0),
-                    data: new Date().toISOString(),
-                    status: 'pendente'
-                };
-
-                // Envia para o Firebase
-                await push(ref(db, `empresas/${COMPANY_ID}/pedidos`), pedido);
-
-                alert(`Pedido recebido com sucesso, ${name}!`);
-                
-                // Reseta tudo
-                cart = [];
-                renderCartUI();
-                window.toggleModal(false);
-                document.getElementById('input-name').value = '';
-                document.getElementById('input-address').value = '';
-
-            } catch (error) {
-                console.error(error);
-                alert("Erro ao enviar pedido: " + error.message);
-            } finally {
-                btn.disabled = false;
-                btnText.innerText = "Confirmar Pedido";
-                btn.classList.remove('opacity-75');
-            }
-        };
-
-        // UTILITÁRIOS
-        function formatMoney(value) {
-            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-        function formatPhone(phone) {
-            if (!phone) return '';
-            return phone.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '($2) $3-$4');
-        }
-
-        // Inicia o App
-        init();
-
-    </script>
+    <script type="module" src="script.js"></script>
 </body>
-
 </html>

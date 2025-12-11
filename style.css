@@ -1,0 +1,542 @@
+/* ============================================================
+   ARQUIVO: style.css (VERSÃO FINAL COMPLETA)
+============================================================ */
+
+/* --- VARIÁVEIS DE CORES --- */
+:root {
+    --brand-purple: #4b0082;      /* Roxo Principal */
+    --brand-light: #f3e5f5;       /* Roxo Bem Claro (Fundo Preço) */
+    --bg-menu: #f8f9fa;           /* Fundo Geral */
+    --wa-green: #075e54;          /* Verde WhatsApp (Header) */
+    --wa-bg: #e5ddd5;             /* Bege WhatsApp (Chat) */
+    --wa-sent: #dcf8c6;           /* Verde Balão Enviado */
+    --disabled-grey: #e0e0e0;     /* Cinza Desativado */
+}
+
+/* --- RESET E LAYOUT BASE --- */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+html, body { 
+    height: 100%; 
+    height: 100dvh; /* Altura dinâmica para celular */
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    background-color: var(--bg-menu); 
+}
+
+/* --- HEADER (TOPO) --- */
+header { 
+    flex-shrink: 0; 
+    color: white; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+    transition: background-color 0.4s ease; 
+    z-index: 100; 
+}
+.header-purple { background-color: var(--brand-purple); }
+.header-whatsapp { background-color: var(--wa-green); }
+
+.header-content { display: flex; align-items: center; padding: 10px 15px; gap: 10px; }
+
+/* Logo do Header */
+.profile-pic { 
+    width: 50px; height: 50px; 
+    border-radius: 50%; 
+    background: white; 
+    overflow: hidden; 
+    display: flex; align-items: center; justify-content: center; 
+}
+.profile-pic img { width: 100%; height: 100%; object-fit: cover; }
+
+.contact-info h3 { font-size: 1.1rem; font-weight: 600; }
+.contact-info p { font-size: 0.8rem; opacity: 0.85; }
+
+/* Abas (Só aparecem no Mobile) */
+.nav-tabs { display: flex; }
+.tab-btn { 
+    flex: 1; background: none; border: none; color: rgba(255,255,255,0.6); 
+    padding: 12px; font-weight: bold; cursor: pointer; 
+    border-bottom: 3px solid transparent; transition: 0.3s; 
+}
+.tab-btn.active { color: white; border-color: white; }
+
+/* --- CONTAINER PRINCIPAL --- */
+.main-container { 
+    flex: 1; position: relative; overflow: hidden; 
+    display: flex; flex-direction: column; 
+}
+
+/* Classes utilitárias de exibição (Mobile) */
+.section-content { display: none; height: 100%; flex-direction: column; overflow: hidden; }
+.active-section { display: flex; }
+.hidden-section { display: none; }
+
+/* ============================================================
+   ESTILOS DO CARDÁPIO (COM SLIDER)
+============================================================ */
+#view-cardapio { overflow: hidden; position: relative; background-color: var(--bg-menu); }
+
+/* O Slider que segura as duas etapas */
+.slider-container {
+    display: flex;
+    width: 200%; /* Duas telas de largura */
+    height: 100%;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Cada página do slider */
+.slide-page {
+    width: 50%;
+    height: 100%;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+}
+
+/* Classes para mover o slider via JS */
+.show-step-1 { transform: translateX(0); }
+.show-step-2 { transform: translateX(-50%); }
+
+.menu-wrapper { 
+    padding: 15px; width: 100%; max-width: 600px; 
+    margin: 0 auto; padding-bottom: 90px; 
+}
+
+/* Banner da Marca */
+.brand-banner { text-align: center; margin-bottom: 25px; padding: 10px; }
+.brand-banner img { max-width: 200px; height: auto; display: block; margin: 0 auto; }
+
+.menu-title { 
+    color: var(--brand-purple); text-align: center; 
+    margin-bottom: 20px; font-size: 1.3rem; 
+}
+
+/* --- GRID DE TAMANHOS (CARDS) --- */
+.category-block { margin-bottom: 30px; }
+.cat-title { 
+    color: #444; font-size: 1.2rem; margin-bottom: 15px; 
+    border-left: 5px solid var(--brand-purple); padding-left: 10px; font-weight: 700; 
+}
+
+.size-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+.size-card {
+    background: white; border-radius: 20px; overflow: visible;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column; align-items: center; padding: 15px;
+}
+.size-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(75, 0, 130, 0.15); }
+
+/* Foto Redonda no Card */
+.card-img {
+    width: 110px; height: 110px; border-radius: 50%;
+    background-color: #fff; position: relative; margin-bottom: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); border: 3px solid var(--brand-light);
+    overflow: hidden;
+}
+.card-img img { width: 100%; height: 100%; object-fit: cover; }
+
+.card-info { text-align: center; display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.size-card .label { font-weight: 700; color: #333; font-size: 1.05rem; }
+.size-card .price {
+    color: var(--brand-purple); font-weight: 800; font-size: 1.1rem;
+    background: #f3e5f5; padding: 5px 12px; border-radius: 20px;
+    width: fit-content; margin: 0 auto;
+}
+
+/* --- TELA DE MONTAGEM --- */
+.back-header { 
+    color: var(--brand-purple); font-weight: bold; cursor: pointer; 
+    margin-bottom: 15px; display: flex; align-items: center; gap: 5px; padding: 5px; 
+}
+
+.product-header { 
+    background: var(--brand-purple); color: white; padding: 15px; 
+    border-radius: 10px; margin-bottom: 15px; 
+    display: flex; justify-content: space-between; align-items: center; 
+}
+.product-header h2 { font-size: 1.2rem; }
+
+/* Box de Opções */
+.menu-card { 
+    background: white; border-radius: 12px; padding: 15px; 
+    margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+}
+
+.card-header { 
+    font-weight: bold; color: var(--brand-purple); border-bottom: 1px solid #eee; 
+    padding-bottom: 8px; margin-bottom: 10px; font-size: 1rem; 
+    display: flex; justify-content: space-between; align-items: center; 
+}
+.card-header small { color: #888; font-weight: normal; font-size: 0.8rem; margin-left: 5px; }
+
+/* Badges */
+.badge-required { background: #d32f2f; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
+.badge-free { background: #388e3c; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
+
+/* --- LISTA COM BOTÕES +/- E FOTO --- */
+.options-list { display: flex; flex-direction: column; gap: 12px; }
+
+.option-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid #f9f9f9; transition: opacity 0.3s;
+}
+
+.option-info { display: flex; align-items: center; gap: 12px; flex: 1; }
+.option-thumb {
+    width: 45px; height: 45px; border-radius: 50%; background: #eee;
+    object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.option-details { display: flex; flex-direction: column; }
+.option-name { font-weight: 600; font-size: 0.95rem; color: #333; }
+.option-price { font-size: 0.85rem; color: var(--brand-purple); font-weight: 700; }
+
+/* Botões Stepper */
+.stepper {
+    display: flex; align-items: center; gap: 10px;
+    background: #f3e5f5; padding: 5px; border-radius: 25px;
+}
+.step-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: none;
+    background: white; color: var(--brand-purple); font-weight: bold;
+    font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.1s, background 0.2s;
+}
+.step-btn:active { transform: scale(0.9); }
+.step-btn.minus { color: #d32f2f; }
+.step-count { font-weight: bold; min-width: 15px; text-align: center; color: #333; }
+.step-count.hidden, .step-btn.hidden { visibility: hidden; width: 0; margin: 0; padding: 0; display: none; }
+
+/* Estado Desativado */
+.option-row.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
+.option-row.disabled.selected-item { opacity: 1; pointer-events: auto; filter: none; }
+
+/* Footer Fixo */
+.menu-footer { 
+    position: absolute; bottom: 0; left: 0; width: 100%; 
+    background: white; padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); 
+    display: flex; justify-content: space-between; align-items: center; z-index: 50; 
+}
+.menu-footer.hidden { display: none; }
+.total-info span { display: block; font-size: 1.3rem; font-weight: bold; color: var(--brand-purple); }
+.btn-finish { 
+    background: #25D366; color: white; border: none; 
+    padding: 12px 25px; border-radius: 50px; font-weight: bold; 
+    display: flex; align-items: center; gap: 8px; cursor: pointer; 
+}
+
+/* ============================================================
+   ESTILOS DO CHAT (WHATSAPP)
+============================================================ */
+#view-chat { 
+    background-color: var(--wa-bg);
+    background-image: linear-gradient(rgba(229, 221, 213, 0.9), rgba(229, 221, 213, 0.9)), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+    background-size: 400px; 
+}
+.chat-desktop-header { display: none; }
+
+.chat-bg { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+.chat-input-area { 
+    flex-shrink: 0; background: #f0f2f5; padding: 10px; 
+    display: flex; align-items: center; gap: 8px; 
+    padding-bottom: max(10px, env(safe-area-inset-bottom)); 
+}
+
+/* Balões */
+.date-badge { background: #dcf8c6; color: #555; font-size: 0.75rem; padding: 5px 10px; border-radius: 8px; margin: 0 auto 10px; width: fit-content; }
+.msg { display: flex; flex-direction: column; max-width: 85%; }
+.msg-bot { align-self: flex-start; }
+.msg-user { align-self: flex-end; }
+.bubble { padding: 8px 12px; border-radius: 8px; position: relative; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+.msg-bot .bubble { background: white; border-top-left-radius: 0; }
+.msg-user .bubble { background: var(--wa-sent); border-top-right-radius: 0; }
+.time { font-size: 0.65rem; color: #999; float: right; margin-top: 5px; margin-left: 10px; }
+
+/* Input */
+.input-wrapper { flex: 1; background: white; border-radius: 25px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; }
+.input-wrapper input { border: none; outline: none; width: 100%; font-size: 1rem; }
+.btn-send-chat { width: 45px; height: 45px; border-radius: 50%; background: var(--wa-green); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.icon-grey { color: #888; font-size: 1.3rem; }
+
+/* ============================================================
+   💻 VERSÃO DESKTOP (BUG CORRIGIDO)
+============================================================ */
+@media (min-width: 769px) {
+    
+    /* 1. Remove coisas de celular */
+    .mobile-only { display: none !important; }
+    
+    /* 2. Header Roxo Fixo */
+    #main-header { background-color: var(--brand-purple); } 
+    
+    /* 3. Layout Lado a Lado */
+    .main-container { 
+        flex-direction: row; 
+        justify-content: center; 
+        padding: 20px; 
+        background-color: #e0e0e0; 
+        gap: 20px; 
+    }
+    
+    /* 4. Coluna Cardápio (Forçar exibição) */
+    #view-cardapio { 
+        display: block !important; /* !important vence o JS */
+        width: 60%; 
+        max-width: 800px; 
+        border-radius: 20px; 
+        overflow: hidden; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+        height: 100%; 
+        border: 1px solid white;
+    }
+    
+    .menu-wrapper { padding-bottom: 0; height: 100%; } 
+    .menu-footer { position: absolute; bottom: 0; width: 100%; }
+    .size-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+
+    /* 5. Coluna Chat (Forçar exibição) */
+    #view-chat { 
+        display: flex !important; /* !important vence o JS */
+        flex-direction: column;
+        width: 380px; 
+        height: 100%; 
+        border-radius: 20px; 
+        overflow: hidden; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+        border: 1px solid #ddd; 
+        background-color: var(--wa-bg);
+    }
+    
+    /* 6. Header do Chat Desktop */
+    .chat-desktop-header { 
+        display: flex !important; 
+        align-items: center; justify-content: center; gap: 10px;
+        background-color: var(--wa-green); color: white; 
+        padding: 18px; font-weight: bold; text-align: center; 
+        flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .chat-header-logo {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: white; padding: 2px; object-fit: cover;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .chat-input-area { padding-bottom: 15px; background-color: #f0f2f5; }
+}
+
+/* ============================================================
+   ÁREA ADMINISTRATIVA (VERSÃO SLIM - SEM ESPAÇO EXTRA)
+============================================================ */
+.admin-footer {
+    text-align: center;
+    margin-top: 15px;    /* Apenas 15px de distância do último produto */
+    margin-bottom: 10px; /* Quase nada de margem no final */
+    padding: 0;          /* Zero enchimento interno */
+    opacity: 0.2;        /* Bem transparente */
+    transition: opacity 0.3s ease;
+    line-height: 1;      /* Remove altura de linha extra */
+}
+
+.admin-footer:hover {
+    opacity: 1;
+}
+
+.btn-secret {
+    background: transparent;
+    border: none;        /* Sem borda pra ocupar menos espaço visual */
+    color: #aaa;
+    padding: 5px;        /* Clique mínimo */
+    font-size: 0.6rem;   /* Letra minúscula */
+    text-transform: uppercase;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Só aparece a borda quando passa o mouse/dedo */
+.btn-secret:hover {
+    color: var(--brand-purple);
+    text-decoration: underline;
+}
+
+.copy {
+    display: none; /* Removi o texto de copyright pra economizar espaço vertical */
+}
+
+/* === ESTILOS GERAIS DE INPUT === */
+.input-field {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    background: #f9f9f9;
+}
+.input-field:focus { border-color: var(--brand-purple); background: white; }
+/* ============================================================
+   ESTILO PROFISSIONAL DO PAINEL ADMIN
+============================================================ */
+
+/* Container Geral do Admin (Cobre tudo) */
+#view-admin { 
+    background-color: #f4f6f8; /* Cinza azulado moderno */
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    z-index: 9999; 
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Cabeçalho do Admin */
+.admin-header {
+    background-color: #2c3e50; /* Azul noturno */
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+.admin-header h2 { margin: 0; font-size: 1.2rem; display: flex; gap: 10px; align-items: center; }
+.btn-close-admin { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+
+/* Navegação (Abas) */
+.admin-nav {
+    background: white;
+    display: flex;
+    overflow-x: auto; /* Permite rolar no celular */
+    padding: 0 10px;
+    border-bottom: 1px solid #ddd;
+    flex-shrink: 0;
+}
+.admin-tab {
+    background: none;
+    border: none;
+    padding: 15px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #7f8c8d;
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    transition: color 0.3s;
+}
+.admin-tab:hover { color: var(--brand-purple); }
+.admin-tab.active { 
+    color: var(--brand-purple); 
+    border-bottom: 3px solid var(--brand-purple);
+}
+
+/* Corpo do Painel (Onde muda o conteúdo) */
+.admin-body {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto; /* Scroll só aqui dentro */
+}
+
+/* As "Páginas" do Admin (Escondidas por padrão) */
+.admin-page {
+    display: none; /* O JS vai mudar isso para block */
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- CARDS DE DASHBOARD (Financeiro) --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.dash-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    border: 1px solid #eee;
+    text-align: center;
+}
+.dash-card h3 { color: #95a5a6; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.dash-card p { font-size: 2.2rem; font-weight: 800; color: #2c3e50; margin: 0; }
+.dash-card.profit p { color: #27ae60; } /* Verde para lucro */
+
+/* --- CARDS DE PEDIDOS (Estilo iFood) --- */
+.order-list { display: flex; flex-direction: column; gap: 15px; }
+
+.order-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-left: 6px solid #ccc; /* Cor do status */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Cores por Status */
+.order-card.status-pendente { border-left-color: #f1c40f; } /* Amarelo */
+.order-card.status-concluido { border-left-color: #27ae60; opacity: 0.7; } /* Verde */
+
+.order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
+.client-name { font-weight: 700; font-size: 1.1rem; color: #333; }
+.order-price { font-weight: 800; color: var(--brand-purple); font-size: 1.1rem; }
+
+.order-body { font-size: 0.9rem; color: #555; line-height: 1.4; }
+.order-body strong { color: #333; }
+
+.order-actions { display: flex; gap: 10px; margin-top: 5px; }
+.btn-action {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: white;
+    display: flex; justify-content: center; align-items: center; gap: 5px;
+}
+.btn-zap { background-color: #25D366; }
+.btn-zap:hover { background-color: #1ebc57; }
+.btn-done { background-color: #3498db; }
+.btn-trash { background-color: #e74c3c; max-width: 50px; }
+
+/* --- LISTAS GERAIS (Cupons/Produtos) --- */
+.item-row {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #eee;
+}
+.item-info b { display: block; color: #333; }
+.btn-remove-item { color: #e74c3c; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 1.2rem; }
+
+/* FORMULÁRIOS ADMIN */
+.admin-form-group {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+.admin-form-group h3 { margin-top: 0; margin-bottom: 15px; color: var(--brand-purple); }
+.input-admin {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fcfcfc;
+}
